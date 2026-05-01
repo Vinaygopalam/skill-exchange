@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config';
 import { useTheme } from '../ThemeContext';
 
 function PostSkill() {
@@ -32,7 +33,7 @@ function PostSkill() {
         ...formData,
         skillsWanted: formData.skillsWanted.split(',').map(s => s.trim()).filter(s => s)
       };
-      await axios.post('http://localhost:5000/api/skills', dataToSend, {
+      await axios.post(`${API_BASE_URL}/api/skills`, dataToSend, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('Skill posted successfully!');

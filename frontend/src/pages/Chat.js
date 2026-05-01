@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 import { useTheme } from '../ThemeContext';
+import API_BASE_URL from '../config';
 
-const socket = io('http://localhost:5000');
+const socket = io(API_BASE_URL);
 
 function Chat() {
   const { roomId } = useParams();
@@ -42,7 +43,7 @@ function Chat() {
   const loadMessages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/messages/${roomId}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/messages/${roomId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(res.data);
@@ -61,7 +62,7 @@ function Chat() {
     };
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/messages', msgData, {
+      await axios.post(`${API_BASE_URL}/api/messages`, msgData, {
         headers: { Authorization: `Bearer ${token}` }
       });
     } catch (err) { console.log(err); }
@@ -77,7 +78,7 @@ function Chat() {
   const submitRating = async (toUserId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/auth/rate/${toUserId}`,
+      await axios.post(`${API_BASE_URL}/api/auth/rate/${toUserId}`,
         { rating, comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );

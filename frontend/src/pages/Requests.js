@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config';
 import { useTheme } from '../ThemeContext';
 
 function Requests() {
@@ -21,8 +22,8 @@ function Requests() {
     try {
       const token = localStorage.getItem('token');
       const [recRes, sentRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/requests', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/requests/sent', { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API_BASE_URL}/api/requests`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_BASE_URL}/api/requests/sent`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setRequests(recRes.data);
       setSentRequests(sentRes.data);
@@ -33,7 +34,7 @@ function Requests() {
   const handleAction = async (id, status) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/requests/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${API_BASE_URL}/api/requests/${id}`, { status }, { headers: { Authorization: `Bearer ${token}` } });
       fetchRequests();
     } catch (err) { console.log(err); }
   };

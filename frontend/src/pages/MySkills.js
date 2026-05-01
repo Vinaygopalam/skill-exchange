@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config';
 import { useTheme } from '../ThemeContext';
 
 function MySkills() {
@@ -18,7 +19,7 @@ function MySkills() {
   const fetchMySkills = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/skills/my', {
+      const res = await axios.get(`${API_BASE_URL}/api/skills/my`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSkills(res.data);
@@ -30,7 +31,7 @@ function MySkills() {
     if (!window.confirm('Are you sure you want to delete this skill?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/skills/${skillId}`, {
+      await axios.delete(`${API_BASE_URL}/api/skills/${skillId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchMySkills();

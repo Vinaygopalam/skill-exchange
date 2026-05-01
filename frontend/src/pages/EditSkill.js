@@ -24,7 +24,7 @@ function EditSkill() {
 
   const fetchSkill = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/skills/${id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/skills/${id}`);
       const skill = res.data;
       setFormData({
         title: skill.title,
@@ -51,7 +51,7 @@ function EditSkill() {
         ...formData,
         skillsWanted: formData.skillsWanted.split(',').map(s => s.trim()).filter(s => s)
       };
-      await axios.put(`http://localhost:5000/api/skills/${id}`, dataToSend, {
+      await axios.put(`${API_BASE_URL}/api/skills/${id}`, dataToSend, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('Skill updated successfully!');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTheme } from '../ThemeContext';
+import API_BASE_URL from '../config';
 
 function Dashboard() {
   const [skills, setSkills] = useState([]);
@@ -25,7 +26,7 @@ function Dashboard() {
 
   const fetchSkills = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/skills');
+      const res = await axios.get(`${API_BASE_URL}/api/skills`);
       setSkills(res.data);
       setFilteredSkills(res.data);
     } catch (err) { console.log(err); }
@@ -34,7 +35,7 @@ function Dashboard() {
   const fetchPendingCount = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/requests', {
+      const res = await axios.get(`${API_BASE_URL}/api/requests`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const pending = res.data.filter(r => r.status === 'pending');
@@ -82,7 +83,7 @@ function Dashboard() {
   const handleSendRequest = async (skillId, toUserId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/requests',
+      await axios.post(`${API_BASE_URL}/api/requests`,
         { skill: skillId, toUser: toUserId, message: 'Hi! I would like to exchange skills with you!' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -96,7 +97,7 @@ function Dashboard() {
     if (!window.confirm('Are you sure you want to delete this skill?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/skills/${skillId}`, {
+      await axios.delete(`${API_BASE_URL}/api/skills/${skillId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchSkills();

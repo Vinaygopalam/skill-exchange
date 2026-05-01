@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeContext';
 
@@ -28,7 +29,7 @@ function Profile() {
   const fetchProfile = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:5000/api/auth/profile/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/profile/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = res.data;
@@ -57,7 +58,7 @@ function Profile() {
         skillsOffered: formData.skillsOffered.split(',').map(s => s.trim()).filter(s => s),
         skillsNeeded: formData.skillsNeeded.split(',').map(s => s.trim()).filter(s => s)
       };
-      const res = await axios.put('http://localhost:5000/api/auth/profile', dataToSend, {
+      const res = await axios.put(`${API_BASE_URL}/api/auth/profile`, dataToSend, {
         headers: { Authorization: `Bearer ${token}` }
       });
       localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user')), name: res.data.name }));
