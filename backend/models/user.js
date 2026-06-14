@@ -38,6 +38,15 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  onlineStatus: {
+    type: String,
+    enum: ['online', 'offline'],
+    default: 'offline'
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now
+  },
   reviews: [{
     fromUser: {
       type: mongoose.Schema.Types.ObjectId,

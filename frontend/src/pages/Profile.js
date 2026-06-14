@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import API_BASE_URL from '../config';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../ThemeContext';
+import API_BASE_URL from '../config';
+import { useAuth, getAuthHeaders } from '../hooks/useAuth';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -17,20 +18,12 @@ function Profile() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) { navigate('/login'); return; }
-    const parsedUser = JSON.parse(storedUser);
-    setUser(parsedUser);
-    fetchProfile(parsedUser.id);
-  }, []);
-
-  const fetchProfile = async (id) => {
+  const fetchProfile = useCallback(async (id) => {
     try {
-      const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/auth/profile/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       const data = res.data;
       setFormData({
@@ -41,7 +34,15 @@ function Profile() {
         skillsNeeded: data.skillsNeeded?.join(', ') || ''
       });
     } catch (err) { console.log(err); }
-  };
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+    const parsedUser = JSON.parse(storedUser);
+    setUser(parsedUser);
+    fetchProfile(parsedUser.id);
+  }, [fetchProfile]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,14 +53,13 @@ function Profile() {
     setSuccess('');
     setError('');
     try {
-      const token = localStorage.getItem('token');
       const dataToSend = {
         ...formData,
         skillsOffered: formData.skillsOffered.split(',').map(s => s.trim()).filter(s => s),
         skillsNeeded: formData.skillsNeeded.split(',').map(s => s.trim()).filter(s => s)
       };
       const res = await axios.put(`${API_BASE_URL}/api/auth/profile`, dataToSend, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user')), name: res.data.name }));
       setSuccess('Profile updated successfully!');
@@ -68,7 +68,6 @@ function Profile() {
 
   const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase();
 
-  // ✅ styles is now INSIDE the component so isDark works correctly
   const styles = {
     page: { minHeight: '100vh', backgroundColor: isDark ? '#0f172a' : '#f8fafc', transition: 'background-color 0.3s ease' },
     navbar: { background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' },
@@ -114,7 +113,7 @@ function Profile() {
           <button onClick={() => navigate('/dashboard')} style={styles.navLink}>Dashboard</button>
           <button onClick={() => navigate('/requests')} style={styles.navLink}>Requests</button>
           <button onClick={toggleTheme} style={styles.themeBtn}>{isDark ? '🌙' : '☀️'}</button>
-          <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/login'); }} style={styles.logoutBtn}>Logout</button>
+          <button onClick={logout} style={styles.logoutBtn}>Logout</button>
         </div>
       </nav>
 

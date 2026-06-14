@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTheme } from '../ThemeContext';
 import API_BASE_URL from '../config';
+import UserProfileModal from '../components/UserProfileModal';
+import NotificationBell from '../components/NotificationBell';
 
 function Dashboard() {
   const [skills, setSkills] = useState([]);
@@ -13,26 +15,32 @@ function Dashboard() {
   const [location, setLocation] = useState('');
   const [minRating, setMinRating] = useState('');
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) { navigate('/login'); return; }
-    setUser(JSON.parse(storedUser));
-    fetchSkills();
-    fetchPendingCount();
-  }, []);
-
-  const fetchSkills = async () => {
+  const fetchSkills = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/skills`);
       setSkills(res.data);
       setFilteredSkills(res.data);
     } catch (err) { console.log(err); }
-  };
+  }, []);
 
-  const fetchPendingCount = async () => {
+  const fetchUnreadCounts = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_BASE_URL}/api/messages/unread`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadCounts(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  const fetchPendingCount = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/requests`, {
@@ -40,8 +48,17 @@ function Dashboard() {
       });
       const pending = res.data.filter(r => r.status === 'pending');
       setPendingCount(pending.length);
+      await fetchUnreadCounts();
     } catch (err) { console.log(err); }
-  };
+  }, [fetchUnreadCounts]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) { navigate('/login'); return; }
+    setUser(JSON.parse(storedUser));
+    fetchSkills();
+    fetchPendingCount();
+  }, [fetchPendingCount, fetchSkills, navigate]);
 
   const filterSkills = (searchVal, categoryVal, locationVal, ratingVal) => {
     let filtered = skills;
@@ -104,12 +121,6 @@ function Dashboard() {
     } catch (err) { alert('Failed to delete skill!'); }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
   const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase();
 
   const getAvatarColor = (name) => {
@@ -136,7 +147,7 @@ function Dashboard() {
     navCta: { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', color: 'white', fontSize: '14px', fontWeight: '600', boxShadow: '0 2px 8px rgba(59,130,246,0.4)' },
     themeBtn: { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' },
     avatarCircle: { width: '38px', height: '38px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '13px', cursor: 'pointer' },
-    notifBadge: { backgroundColor: '#ef4444', color: 'white', fontSize: '11px', fontWeight: '700', padding: '2px 7px', borderRadius: '20px', marginLeft: '6px' },
+    notifBadge: { backgroundColor: '#ef4444', color: 'white', fontSize: '12px', fontWeight: '700', padding: '2px 10px', borderRadius: '20px', marginLeft: '6px', minWidth: '26px', textAlign: 'center' },
     hero: { background: 'linear-gradient(135deg, #166534 0%, #15803d 50%, #16a34a 100%)', padding: '60px 32px 40px', textAlign: 'center' },
     heroTitle: { fontSize: '44px', fontWeight: '800', color: '#ffffff', marginBottom: '14px', letterSpacing: '-1px', lineHeight: '1.2' },
     heroSub: { fontSize: '18px', color: '#bbf7d0', marginBottom: '36px' },
@@ -150,7 +161,7 @@ function Dashboard() {
     filterInput: { padding: '9px 16px', borderRadius: '10px', border: isDark ? '1.5px solid #334155' : '1.5px solid #e2e8f0', fontSize: '14px', backgroundColor: isDark ? '#1e293b' : 'white', color: isDark ? '#f1f5f9' : '#1e293b', outline: 'none', minWidth: '160px' },
     filterSelect: { padding: '9px 16px', borderRadius: '10px', border: isDark ? '1.5px solid #334155' : '1.5px solid #e2e8f0', fontSize: '14px', backgroundColor: isDark ? '#1e293b' : 'white', color: isDark ? '#f1f5f9' : '#1e293b', outline: 'none', cursor: 'pointer' },
     clearBtn: { padding: '9px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#fef2f2', color: '#dc2626', fontSize: '13px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px' },
-    filterBadge: { backgroundColor: '#ef4444', color: 'white', fontSize: '11px', fontWeight: '700', padding: '2px 7px', borderRadius: '20px' },
+    filterBadge: { backgroundColor: '#ef4444', color: 'white', fontSize: '12px', fontWeight: '700', padding: '2px 10px', borderRadius: '20px', minWidth: '26px', textAlign: 'center' },
     content: { maxWidth: '1200px', margin: '0 auto', padding: '32px 32px 48px' },
     sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' },
     sectionTitle: { fontSize: '26px', fontWeight: '700', color: isDark ? '#f1f5f9' : '#0f172a' },
@@ -179,6 +190,9 @@ function Dashboard() {
 
   return (
     <div style={styles.page}>
+      {selectedUserProfile && (
+        <UserProfileModal userId={selectedUserProfile} onClose={() => setSelectedUserProfile(null)} />
+      )}
       <nav style={styles.navbar}>
         <div style={styles.navBrand}>
           <div style={styles.brandIcon}>
@@ -195,9 +209,10 @@ function Dashboard() {
           <button onClick={() => navigate('/my-skills')} style={styles.navLink}>My Skills</button>
           <button onClick={() => navigate('/requests')} style={styles.navLink}>
             Requests
-            {pendingCount > 0 && <span style={styles.notifBadge}>{pendingCount}</span>}
+            {(pendingCount > 0 || Object.keys(unreadCounts).length > 0) && <span style={styles.notifBadge}>{pendingCount + Object.values(unreadCounts).reduce((a,b)=>a+b,0)}</span>}
           </button>
           <button onClick={() => navigate('/post-skill')} style={styles.navCta}>+ Post Skill</button>
+          <NotificationBell />
           <button onClick={toggleTheme} style={styles.themeBtn}>{isDark ? '🌙' : '☀️'}</button>
           <div style={{...styles.avatarCircle, background: getAvatarColor(user?.name)}} onClick={() => navigate('/profile')} title="View Profile">
             {getInitials(user?.name)}
@@ -224,6 +239,28 @@ function Dashboard() {
             <option value="Other">Other</option>
           </select>
         </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', padding: '0 24px 24px 24px', maxWidth: '1180px', margin: '0 auto' }}>
+        {[
+          { label: '🏆 Leaderboard', desc: 'Top performers', path: '/leaderboard' },
+          { label: '🔎 Advanced Search', desc: 'Find skills faster', path: '/search' },
+          { label: '📊 My Stats', desc: 'Track progress', path: '/stats' },
+          { label: '💡 Recommendations', desc: 'Smart matches', path: '/recommendations' }
+        ].map((item) => (
+          <div key={item.path} onClick={() => navigate(item.path)} style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            borderRadius: '18px',
+            padding: '18px 20px',
+            cursor: 'pointer',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+          }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: '800', color: isDark ? '#f1f5f9' : '#0f172a' }}>{item.label}</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>{item.desc}</p>
+          </div>
+        ))}
       </div>
 
       <div style={styles.filterBar}>
@@ -266,8 +303,14 @@ function Dashboard() {
             {filteredSkills.map((skill) => (
               <div key={skill._id} style={styles.card}>
                 <div style={styles.cardTop}>
-                  <div style={{...styles.cardAvatar, background: getAvatarColor(skill.user?.name)}}>{getInitials(skill.user?.name)}</div>
-                  <div>
+                  <div
+                    style={{...styles.cardAvatar, background: getAvatarColor(skill.user?.name), cursor: 'pointer'}}
+                    onClick={() => setSelectedUserProfile(skill.user?._id)}
+                    title="View profile"
+                  >
+                    {getInitials(skill.user?.name)}
+                  </div>
+                  <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => setSelectedUserProfile(skill.user?._id)}>
                     <p style={{ ...styles.cardUserName, color: isDark ? '#f1f5f9' : '#0f172a' }}>{skill.user?.name}</p>
                     <p style={styles.cardLocation}>📍 {skill.location}</p>
                   </div>

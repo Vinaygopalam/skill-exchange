@@ -3,10 +3,18 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const rateLimit = require('express-rate-limit');
+const auth = require('../middleware/auth');
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
-router.post('/register', async (req, res) => {
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Too many attempts, please try again later!' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const { name, email, password, location } = req.body;
 
@@ -54,25 +62,20 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// @route   POST /api/auth/login
-// @desc    Login user
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials!' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials!' });
     }
 
-    // Create token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
@@ -95,8 +98,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error!' });
   }
 });
-// @route   GET /api/auth/profile/:id
-// @desc    Get user profile
+
 router.get('/profile/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
@@ -107,17 +109,11 @@ router.get('/profile/:id', async (req, res) => {
   }
 });
 
-// @route   PUT /api/auth/profile
-// @desc    Update user profile
-router.put('/profile', async (req, res) => {
+router.put('/profile', auth, async (req, res) => {
   try {
-    const auth = require('../middleware/auth');
     const { name, location, bio, skillsOffered, skillsNeeded } = req.body;
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findByIdAndUpdate(
-      decoded.id,
+      req.user.id,
       { name, location, bio, skillsOffered, skillsNeeded },
       { new: true }
     ).select('-password');
@@ -126,18 +122,14 @@ router.put('/profile', async (req, res) => {
     res.status(500).json({ message: 'Server error!' });
   }
 });
-// @route   POST /api/auth/rate/:id
-// @desc    Rate a user
-router.post('/rate/:id', async (req, res) => {
+
+router.post('/rate/:id', auth, async (req, res) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { rating, comment } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found!' });
     user.reviews.push({
-      fromUser: decoded.id,
+      fromUser: req.user.id,
       rating,
       comment
     });

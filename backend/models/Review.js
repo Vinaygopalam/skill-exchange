@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const RequestSchema = new mongoose.Schema({
+const ReviewSchema = new mongoose.Schema({
   fromUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -11,19 +11,20 @@ const RequestSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  skill: {
+  request: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Skill',
+    ref: 'Request',
     required: true
   },
-  message: {
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    required: true
+  },
+  comment: {
     type: String,
     default: ''
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'accepted', 'rejected', 'completed'],
-    default: 'pending'
   },
   createdAt: {
     type: Date,
@@ -31,4 +32,4 @@ const RequestSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Request', RequestSchema);
+module.exports = mongoose.model('Review', ReviewSchema);

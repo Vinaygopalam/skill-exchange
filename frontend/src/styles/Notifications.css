@@ -1,0 +1,229 @@
+.notifications-container {
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.notifications-container.dark {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+}
+
+.notifications-container.dark .notifications-header {
+  border-bottom-color: #333;
+}
+
+.notifications-header h2 {
+  margin: 0;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.mark-all-btn {
+  padding: 8px 16px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.mark-all-btn:hover {
+  background-color: #1976d2;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+  font-size: 16px;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.notifications-container.dark .notification-item {
+  background-color: #2a2a2a;
+  border-left-color: #2196f3;
+}
+
+.notification-item:hover {
+  background-color: #f0f0f0;
+  transform: translateX(5px);
+}
+
+.notifications-container.dark .notification-item:hover {
+  background-color: #333;
+}
+
+.notification-item.unread {
+  background-color: #e3f2fd;
+  font-weight: 500;
+}
+
+.notifications-container.dark .notification-item.unread {
+  background-color: #1a3a52;
+}
+
+.notification-icon {
+  font-size: 24px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-content h4 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.notifications-container.dark .notification-content h4 {
+  color: #e0e0e0;
+}
+
+.notification-content p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #666;
+  word-break: break-word;
+}
+
+.notifications-container.dark .notification-content p {
+  color: #aaa;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #999;
+  display: block;
+}
+
+.notifications-container.dark .notification-time {
+  color: #666;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn,
+.delete-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  background-color: transparent;
+}
+
+.action-btn {
+  color: #2196f3;
+  border: 1px solid #2196f3;
+}
+
+.action-btn:hover {
+  background-color: #2196f3;
+  color: white;
+}
+
+.delete-btn {
+  color: #ff4757;
+  border: 1px solid #ff4757;
+}
+
+.delete-btn:hover {
+  background-color: #ff4757;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .notifications-container {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  .notifications-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .mark-all-btn {
+    align-self: flex-end;
+  }
+
+  .notification-item {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .notification-icon {
+    font-size: 20px;
+  }
+
+  .notification-content h4 {
+    font-size: 14px;
+  }
+
+  .notification-content p {
+    font-size: 12px;
+  }
+}

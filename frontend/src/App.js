@@ -9,6 +9,11 @@ import Requests from './pages/Requests';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import EditSkill from './pages/EditSkill';
+import Notifications from './pages/Notifications';
+import Leaderboard from './pages/Leaderboard';
+import AdvancedSearch from './pages/AdvancedSearch';
+import StatsDashboard from './pages/StatsDashboard';
+import Recommendations from './pages/Recommendations';
 import './App.css';
 
 function App() {
@@ -26,6 +31,11 @@ function App() {
           <Route path="/chat/:roomId" element={<Chat />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-skill/:id" element={<EditSkill />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/search" element={<AdvancedSearch />} />
+          <Route path="/stats" element={<StatsDashboard />} />
+          <Route path="/recommendations" element={<Recommendations />} />
         </Routes>
       </div>
     </Router>

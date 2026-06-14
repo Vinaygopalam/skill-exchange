@@ -25,8 +25,23 @@ router.get('/unread', auth, async (req, res) => {
 // Mark unread messages in a room as read for the logged in user
 router.put('/read/:roomId', auth, async (req, res) => {
   try {
+    let finalRoomId = req.params.roomId;
+    const isRequestId = req.params.roomId.match(/^[a-f\d]{24}$/i);
+    
+    if (isRequestId) {
+      const Request = require('../models/Request');
+      const request = await Request.findById(req.params.roomId);
+      if (!request) {
+        return res.status(404).json({ message: 'Request not found!' });
+      }
+      
+      const fromId = request.fromUser.toString();
+      const toId = request.toUser.toString();
+      finalRoomId = [fromId, toId].sort().join('_');
+    }
+    
     const messages = await Message.find({
-      roomId: req.params.roomId,
+      roomId: finalRoomId,
       senderId: { $ne: req.user.id },
       status: { $ne: 'read' }
     });
@@ -34,7 +49,7 @@ router.put('/read/:roomId', auth, async (req, res) => {
     const updatedIds = messages.map((message) => message._id.toString());
 
     await Message.updateMany({
-      roomId: req.params.roomId,
+      roomId: finalRoomId,
       senderId: { $ne: req.user.id },
       status: { $ne: 'read' }
     }, {
@@ -51,7 +66,22 @@ router.put('/read/:roomId', auth, async (req, res) => {
 // Get all messages for a room
 router.get('/:roomId', auth, async (req, res) => {
   try {
-    const messages = await Message.find({ roomId: req.params.roomId })
+    let finalRoomId = req.params.roomId;
+    const isRequestId = req.params.roomId.match(/^[a-f\d]{24}$/i);
+    
+    if (isRequestId) {
+      const Request = require('../models/Request');
+      const request = await Request.findById(req.params.roomId);
+      if (!request) {
+        return res.status(404).json({ message: 'Request not found!' });
+      }
+      
+      const fromId = request.fromUser.toString();
+      const toId = request.toUser.toString();
+      finalRoomId = [fromId, toId].sort().join('_');
+    }
+    
+    const messages = await Message.find({ roomId: finalRoomId })
       .sort({ createdAt: 1 });
     res.json(messages);
   } catch (error) {
@@ -69,18 +99,47 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'roomId is required!' });
     }
 
-    // Extract users from roomId (format: userId1_userId2)
-    const userIds = roomId.split('_').filter(Boolean);
-    if (userIds.length !== 2) {
-      return res.status(400).json({ message: 'Invalid roomId format!' });
-    }
+    // Check if roomId is a Request ID (MongoDB ObjectId format) or userId format
+    const isRequestId = roomId.match(/^[a-f\d]{24}$/i);
+    let finalRoomId = roomId;
+    let receiverId = null;
 
-    // Ensure authenticated user is part of the room (prevents spoofing)
-    if (!userIds.includes(senderId)) {
-      return res.status(403).json({ message: 'Not authorized to send messages in this room!' });
-    }
+    if (isRequestId) {
+      // It's a request ID - get the participants
+      const Request = require('../models/Request');
+      const request = await Request.findById(roomId);
+      if (!request) {
+        return res.status(404).json({ message: 'Request not found!' });
+      }
+      
+      const fromId = request.fromUser.toString();
+      const toId = request.toUser.toString();
+      
+      // Ensure user is part of this request
+      if (fromId !== senderId && toId !== senderId) {
+        return res.status(403).json({ message: 'Not authorized to send messages in this room!' });
+      }
+      
+      receiverId = fromId === senderId ? toId : fromId;
+      finalRoomId = [fromId, toId].sort().join('_');
+    } else {
+      // roomId format should be: userId1_userId2 (based on frontend route /chat/:roomId)
+      const roomParts = roomId.split('_').filter(Boolean);
+      if (roomParts.length < 2) {
+        return res.status(400).json({
+          message: 'Invalid roomId format! Expected userId1_userId2 or requestId',
+          roomId
+        });
+      }
 
-    const receiverId = userIds.find((id) => id !== senderId);
+      // Ensure authenticated user is part of the room (prevents spoofing)
+      if (!roomParts.includes(senderId)) {
+        return res.status(403).json({ message: 'Not authorized to send messages in this room!' });
+      }
+
+      // Receiver is any other user id inside the roomId
+      receiverId = roomParts.find((id) => id !== senderId);
+    }
 
     const normalizedMessage = (message || '').trim() || (attachments.length ? `Sent ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}` : '');
 
@@ -93,7 +152,7 @@ router.post('/', auth, async (req, res) => {
     const senderName = senderUser?.name || 'User';
 
     const newMessage = new Message({
-      roomId,
+      roomId: finalRoomId,
       message: normalizedMessage,
       sender: senderName,
       senderId,

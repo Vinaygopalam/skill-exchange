@@ -1,44 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import API_BASE_URL from '../config';
 import { useTheme } from '../ThemeContext';
+import API_BASE_URL from '../config';
+import { useAuth, getAuthHeaders } from '../hooks/useAuth';
 
 function MySkills() {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) { navigate('/login'); return; }
-    fetchMySkills();
-  }, []);
-
-  const fetchMySkills = async () => {
+  const fetchMySkills = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/skills/my`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       setSkills(res.data);
     } catch (err) { console.log(err); }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (!user) return;
+    fetchMySkills();
+  }, [fetchMySkills]);
 
   const handleDelete = async (skillId) => {
     if (!window.confirm('Are you sure you want to delete this skill?')) return;
     try {
-      const token = localStorage.getItem('token');
       await axios.delete(`${API_BASE_URL}/api/skills/${skillId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       fetchMySkills();
     } catch (err) { alert('Failed to delete skill!'); }
   };
 
-  // ✅ styles inside component so isDark works
   const styles = {
     page: { minHeight: '100vh', backgroundColor: isDark ? '#0f172a' : '#f8fafc', transition: 'background-color 0.3s ease' },
     navbar: { background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' },
@@ -48,6 +47,7 @@ function MySkills() {
     navLinks: { display: 'flex', gap: '8px', alignItems: 'center' },
     navLink: { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '14px', fontWeight: '500' },
     themeBtn: { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' },
+    logoutBtn: { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', color: '#fca5a5', fontSize: '14px', fontWeight: '500' },
     postBtn: { background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', color: 'white', fontSize: '14px', fontWeight: '600', boxShadow: '0 2px 8px rgba(79,70,229,0.4)' },
     container: { maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' },
     pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
@@ -95,10 +95,12 @@ function MySkills() {
           <span style={styles.brandName}>SkillExchange</span>
         </div>
         <div style={styles.navLinks}>
-          <button onClick={() => navigate('/dashboard')} style={styles.navLink}>Dashboard</button>
-          <button onClick={toggleTheme} style={styles.themeBtn}>{isDark ? '🌙' : '☀️'}</button>
-          <button onClick={() => navigate('/post-skill')} style={styles.postBtn}>+ Post Skill</button>
-        </div>
+           <button onClick={() => navigate('/dashboard')} style={styles.navLink}>Dashboard</button>
+           <button onClick={() => navigate('/profile')} style={styles.navLink}>Profile</button>
+           <button onClick={toggleTheme} style={styles.themeBtn}>{isDark ? '🌙' : '☀️'}</button>
+           <button onClick={() => navigate('/post-skill')} style={styles.postBtn}>+ Post Skill</button>
+           <button onClick={logout} style={styles.logoutBtn}>Logout</button>
+         </div>
       </nav>
 
       <div style={styles.container}>

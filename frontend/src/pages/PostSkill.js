@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import API_BASE_URL from '../config';
 import { useTheme } from '../ThemeContext';
+import API_BASE_URL from '../config';
+import { getAuthHeaders } from '../hooks/useAuth';
 
 function PostSkill() {
   const [formData, setFormData] = useState({
@@ -28,13 +29,12 @@ function PostSkill() {
     setError('');
     setSuccess('');
     try {
-      const token = localStorage.getItem('token');
       const dataToSend = {
         ...formData,
         skillsWanted: formData.skillsWanted.split(',').map(s => s.trim()).filter(s => s)
       };
       await axios.post(`${API_BASE_URL}/api/skills`, dataToSend, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       setSuccess('Skill posted successfully!');
       setTimeout(() => navigate('/dashboard'), 2000);
@@ -44,7 +44,6 @@ function PostSkill() {
     setLoading(false);
   };
 
-  // ✅ styles inside component so isDark works
   const styles = {
     page: { minHeight: '100vh', backgroundColor: isDark ? '#0f172a' : '#f8fafc', transition: 'background-color 0.3s ease' },
     navbar: { background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '0 32px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' },

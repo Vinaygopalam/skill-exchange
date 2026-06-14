@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../ThemeContext';
+const API_BASE_URL = 'http://localhost:5000';
 
 function EditSkill() {
   const { id } = useParams();
@@ -18,11 +19,7 @@ function EditSkill() {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    fetchSkill();
-  }, []);
-
-  const fetchSkill = async () => {
+  const fetchSkill = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/skills/${id}`);
       const skill = res.data;
@@ -34,7 +31,11 @@ function EditSkill() {
         skillsWanted: skill.skillsWanted?.join(', ') || ''
       });
     } catch (err) { console.log(err); }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchSkill();
+  }, [fetchSkill]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
