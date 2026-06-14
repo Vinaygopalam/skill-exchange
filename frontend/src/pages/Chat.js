@@ -14,7 +14,7 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [user, setUser] = useState(null);
-  const [requestDetails, setRequestDetails] = useState(null);
+  const [, setRequestDetails] = useState(null);
   const [otherUserId, setOtherUserId] = useState(null);
   const [showRating, setShowRating] = useState(false);
   const [rating, setRating] = useState(5);
