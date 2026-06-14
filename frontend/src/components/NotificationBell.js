@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/NotificationBell.css';
 
 function NotificationBell() {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
