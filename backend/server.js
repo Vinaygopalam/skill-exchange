@@ -42,6 +42,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'Skill Exchange API is running!' });
 });
 
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({ message: 'API endpoint not found', path: req.path });
