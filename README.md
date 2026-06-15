@@ -140,5 +140,4 @@ GitHub: https://github.com/Vinaygopalam
 
 ## Live Demo
 
-Coming Soon
-﻿# skill-exchange
+https://skill-exchange-iota.vercel.app/login
